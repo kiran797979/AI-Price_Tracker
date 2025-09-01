@@ -1,0 +1,43 @@
+name: Check Product Prices
+
+on:
+  schedule:
+    # Run every 6 hours
+    - cron: "0 0,6,12,18 * * *"
+  workflow_dispatch: # Allows manual triggering
+
+# Add permissions for the GitHub bot
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-prices:
+    runs-on: ubuntu-latest
+
+    # Add concurrency group to prevent parallel runs
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=${{ github.workspace }}" >> $GITHUB_ENV
+
+      - name: Run price checker
+        env:
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          PRICE_DROP_THRESHOLD: 0.05
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+        run: python src/check_prices.py

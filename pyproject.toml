@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "automated_price_tracking"
+version = "0.1.0"
+description = ""
+authors = ["BexTuychiev <bex@ibexprogramming.com>"]
+readme = "README.md"
+packages = [{include = "src"}]
+package-mode = true
+
+[tool.poetry.dependencies]
+python = "^3.10"
+streamlit = "^1.40.2"
+pandas = "^2.2.3"
+pydantic = "^2.10.2"
+pydantic-settings = "^2.6.1"
+sqlalchemy = "2.0.35"
+aiohttp = "^3.11.8"
+python-dotenv = "^1.0.1"
+firecrawl-py = "^1.6.1"
+requests = "^2.32.3"
+plotly = "^5.24.1"
+psycopg2-binary = "^2.9.10"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+pytest-asyncio = "^0.24.0"
+ipykernel = "^6.29.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+asyncio_mode = "strict"
+asyncio_fixture_loop_scope = "function"
+pythonpath = ["src"]
+testpaths = ["src/tests"]
+
+[tool.poetry.scripts]
+app = "src.main:main"

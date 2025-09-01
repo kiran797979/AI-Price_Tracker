@@ -1,0 +1,5 @@
+[server]
+fileWatcherType = "auto"
+
+[browser]
+gatherUsageStats = false
