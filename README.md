@@ -45,7 +45,7 @@ Before you begin, ensure you have:
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/BexTuychiev/automated-price-tracking.git
+git clone https://github.com/kiran797979/AI-Price_Tracker.git
 cd automated-price-tracking
 ```
 
