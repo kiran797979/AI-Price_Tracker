@@ -35,13 +35,24 @@ def get_db_url():
     return "sqlite:///data/price_history.db"
 
 
-engine = create_engine(
-    get_db_url(),
-    pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=10,
-    connect_args={"connect_timeout": 30},  # Add connection timeout
-)
+def get_engine():
+    """Create database engine with appropriate configuration for the database type"""
+    db_url = get_db_url()
+    
+    # Base engine arguments
+    engine_args = {
+        "pool_pre_ping": True,
+        "pool_size": 5,
+        "max_overflow": 10,
+    }
+    
+    # Add connection timeout only for PostgreSQL (not supported by SQLite)
+    if db_url.startswith("postgresql://"):
+        engine_args["connect_args"] = {"connect_timeout": 30}
+    
+    return create_engine(db_url, **engine_args)
+
+engine = get_engine()
 
 SessionLocal = sessionmaker(bind=engine)
 
