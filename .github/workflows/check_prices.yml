@@ -21,23 +21,105 @@ jobs:
       cancel-in-progress: true
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+          cache: 'pip'  # Enable pip caching for faster installs
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            echo "requirements.txt file not found!"
+            exit 1
+          fi
+
+      - name: Verify Python environment
+        run: |
+          python --version
+          pip list
+          echo "Working directory: $(pwd)"
+          ls -la src/
 
       - name: Set PYTHONPATH
         run: echo "PYTHONPATH=${{ github.workspace }}" >> $GITHUB_ENV
 
+      - name: Verify required secrets
+        run: |
+          if [ -z "$FIRECRAWL_API_KEY" ]; then echo "FIRECRAWL_API_KEY is not set"; exit 1; fi
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then echo "DISCORD_WEBHOOK_URL is not set"; exit 1; fi
+          if [ -z "$POSTGRES_URL" ]; then echo "POSTGRES_URL is not set"; exit 1; fi
+          echo "All required environment variables are set"
+        env:
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+
       - name: Run price checker
+        id: run_price_checker
+        continue-on-error: true  # Allow the job to continue even if this step fails
         env:
           FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           PRICE_DROP_THRESHOLD: 0.05
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
-        run: python src/check_prices.py
+          DEBUG: 'true'  # Enable debug mode in your script if it supports it
+        run: |
+          # Try both module syntax and direct file execution
+          python -m src.check_prices 2>&1 | tee price_check.log || python src/check_prices.py 2>&1 | tee -a price_check.log
+          
+          if [ ${PIPESTATUS[0]} -ne 0 ] && [ ${PIPESTATUS[1]} -ne 0 ]; then
+            echo "::warning::Price checker script failed with both execution methods"
+            cat price_check.log
+            exit 1
+          fi
+
+      - name: Upload logs on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: price-checker-logs
+          path: |
+            price_check.log
+            
+      - name: Retry on failure
+        if: ${{ steps.run_price_checker.outcome == 'failure' }}
+        env:
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          PRICE_DROP_THRESHOLD: 0.05
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+        run: |
+          echo "First attempt failed, retrying after a short delay..."
+          sleep 30
+          python src/check_prices.py 2>&1 | tee retry_log.log
+
+      - name: Upload retry logs
+        if: ${{ steps.run_price_checker.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: price-checker-retry-logs
+          path: |
+            retry_log.log
+
+      - name: Notify on success after retry
+        if: ${{ success() && steps.run_price_checker.outcome == 'failure' }}
+        run: |
+          echo "Price checker succeeded after retry"
+
+      - name: Create issue if both attempts fail
+        if: ${{ failure() }}
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filename: .github/ISSUE_TEMPLATE/failed_price_check.md
+          update_existing: true
