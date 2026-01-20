@@ -6,6 +6,11 @@ async def send_price_alert(
     product_name: str, old_price: float, new_price: float, url: str
 ):
     """Send a price drop alert to Discord"""
+    # Skip if Discord webhook URL is not configured
+    if not settings.DISCORD_WEBHOOK_URL:
+        print("Discord webhook URL not configured. Skipping notification.")
+        return
+    
     drop_percentage = ((old_price - new_price) / old_price) * 100
 
     message = {

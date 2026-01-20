@@ -115,13 +115,13 @@ The app can be deployed to Streamlit Cloud for free:
 2. Sign up for [Streamlit Cloud](https://streamlit.io/cloud)
 3. Create a new app and select your forked repository
 4. Add the following secrets in the app settings:
-   - `FIRECRAWL_API_KEY`
-   - `DISCORD_WEBHOOK_URL`
-   - `PRICE_DROP_THRESHOLD`
-   - `POSTGRES_URL` (recommended)
+   - `FIRECRAWL_API_KEY` (required)
+   - `DISCORD_WEBHOOK_URL` (optional - for notifications)
+   - `PRICE_DROP_THRESHOLD` (optional - defaults to 0.05)
+   - `POSTGRES_URL` (optional - recommended for production, SQLite used by default)
 5. Deploy the app
 
-The GitHub Actions workflow will continue to run price checks automatically in your forked repository. Make sure to add the required secrets to your repository's settings as well (Settings → Secrets and variables → Actions).
+The GitHub Actions workflow will continue to run price checks automatically in your forked repository. Make sure to add at least the `FIRECRAWL_API_KEY` secret to your repository's settings (Settings → Secrets and variables → Actions).
 
 ## Development
 
@@ -157,6 +157,37 @@ git checkout -b feature/your-feature-name
 3. Add tests
 4. Run the test suite
 5. Submit a pull request
+
+## Troubleshooting
+
+### GitHub Actions Setup
+
+The automated price checking workflow requires specific secrets to be configured in your repository:
+
+**Required Secrets:**
+- `FIRECRAWL_API_KEY` - Your Firecrawl API key for web scraping. Get one at [firecrawl.dev](https://firecrawl.dev)
+- `DISCORD_WEBHOOK_URL` - Your Discord webhook URL for price drop notifications
+
+**Optional Secrets:**
+- `POSTGRES_URL` - PostgreSQL database connection string. If not set, the workflow will use SQLite for storage
+
+**To add secrets:**
+1. Go to your repository on GitHub
+2. Click on **Settings** → **Secrets and variables** → **Actions**
+3. Click **New repository secret**
+4. Add each required secret with its value
+
+**Common Issues:**
+- **"FIRECRAWL_API_KEY is not set"** - Add the FIRECRAWL_API_KEY secret to your repository
+- **"TypeError: 'connect_timeout' is an invalid keyword argument"** - This has been fixed in the latest version. Make sure you're using the updated code
+- **Database connection errors** - If using PostgreSQL, verify your `POSTGRES_URL` is correct. For local development, SQLite works automatically
+
+### Local Development vs CI
+
+The application automatically adapts to the environment:
+- **Local development**: Uses SQLite database (`data/price_history.db`) by default
+- **CI/GitHub Actions**: Uses SQLite if `POSTGRES_URL` is not set, otherwise connects to PostgreSQL
+- **Production**: Recommended to use PostgreSQL via `POSTGRES_URL` environment variable
 
 ## Contributing
 
