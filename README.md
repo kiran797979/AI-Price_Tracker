@@ -158,6 +158,37 @@ git checkout -b feature/your-feature-name
 4. Run the test suite
 5. Submit a pull request
 
+## Troubleshooting
+
+### GitHub Actions Setup
+
+The automated price checking workflow requires specific secrets to be configured in your repository:
+
+**Required Secrets:**
+- `FIRECRAWL_API_KEY` - Your Firecrawl API key for web scraping. Get one at [firecrawl.dev](https://firecrawl.dev)
+- `DISCORD_WEBHOOK_URL` - Your Discord webhook URL for price drop notifications
+
+**Optional Secrets:**
+- `POSTGRES_URL` - PostgreSQL database connection string. If not set, the workflow will use SQLite for storage
+
+**To add secrets:**
+1. Go to your repository on GitHub
+2. Click on **Settings** → **Secrets and variables** → **Actions**
+3. Click **New repository secret**
+4. Add each required secret with its value
+
+**Common Issues:**
+- **"FIRECRAWL_API_KEY is not set"** - Add the FIRECRAWL_API_KEY secret to your repository
+- **"TypeError: 'connect_timeout' is an invalid keyword argument"** - This has been fixed in the latest version. Make sure you're using the updated code
+- **Database connection errors** - If using PostgreSQL, verify your `POSTGRES_URL` is correct. For local development, SQLite works automatically
+
+### Local Development vs CI
+
+The application automatically adapts to the environment:
+- **Local development**: Uses SQLite database (`data/price_history.db`) by default
+- **CI/GitHub Actions**: Uses SQLite if `POSTGRES_URL` is not set, otherwise connects to PostgreSQL
+- **Production**: Recommended to use PostgreSQL via `POSTGRES_URL` environment variable
+
 ## Contributing
 
 1. Fork the repository
