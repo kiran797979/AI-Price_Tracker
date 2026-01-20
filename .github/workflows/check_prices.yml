@@ -52,12 +52,23 @@ jobs:
       - name: Set PYTHONPATH
         run: echo "PYTHONPATH=${{ github.workspace }}" >> $GITHUB_ENV
 
-      - name: Verify required secrets
+      # Required GitHub Secrets:
+      # - FIRECRAWL_API_KEY: Required for web scraping functionality
+      # - DISCORD_WEBHOOK_URL: Required for price drop notifications
+      # - POSTGRES_URL: Optional - if not set, SQLite will be used for local storage
+      - name: Validate environment variables
         run: |
-          if [ -z "$FIRECRAWL_API_KEY" ]; then echo "FIRECRAWL_API_KEY is not set"; exit 1; fi
-          if [ -z "$DISCORD_WEBHOOK_URL" ]; then echo "DISCORD_WEBHOOK_URL is not set"; exit 1; fi
-          if [ -z "$POSTGRES_URL" ]; then echo "POSTGRES_URL is not set"; exit 1; fi
-          echo "All required environment variables are set"
+          if [ -z "$FIRECRAWL_API_KEY" ]; then 
+            echo "❌ FIRECRAWL_API_KEY is not set. Please add it to repository secrets."
+            exit 1
+          fi
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then 
+            echo "⚠️  DISCORD_WEBHOOK_URL is not set. Notifications will be disabled."
+          fi
+          if [ -z "$POSTGRES_URL" ]; then 
+            echo "ℹ️  POSTGRES_URL is not set. Using SQLite for local storage."
+          fi
+          echo "✅ Required environment variables validated"
         env:
           FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
