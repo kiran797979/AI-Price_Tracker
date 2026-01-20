@@ -64,5 +64,6 @@ def test_get_db_url_postgres_scheme_correction():
     test_postgres_url = "postgres://user:pass@localhost:5432/testdb"
     with patch.dict(os.environ, {'POSTGRES_URL': test_postgres_url}, clear=False):
         db_url = get_db_url()
+        # Verify the scheme was corrected
         assert db_url.startswith("postgresql://")
-        assert "postgres://" not in db_url or db_url.startswith("postgresql://")
+        assert "postgres://" not in db_url

@@ -54,7 +54,9 @@ jobs:
 
       # Required GitHub Secrets:
       # - FIRECRAWL_API_KEY: Required for web scraping functionality
-      # - DISCORD_WEBHOOK_URL: Required for price drop notifications
+      # 
+      # Optional GitHub Secrets:
+      # - DISCORD_WEBHOOK_URL: Optional - if not set, price drop notifications will be disabled
       # - POSTGRES_URL: Optional - if not set, SQLite will be used for local storage
       - name: Validate environment variables
         run: |
