@@ -115,13 +115,13 @@ The app can be deployed to Streamlit Cloud for free:
 2. Sign up for [Streamlit Cloud](https://streamlit.io/cloud)
 3. Create a new app and select your forked repository
 4. Add the following secrets in the app settings:
-   - `FIRECRAWL_API_KEY`
-   - `DISCORD_WEBHOOK_URL`
-   - `PRICE_DROP_THRESHOLD`
-   - `POSTGRES_URL` (recommended)
+   - `FIRECRAWL_API_KEY` (required)
+   - `DISCORD_WEBHOOK_URL` (optional - for notifications)
+   - `PRICE_DROP_THRESHOLD` (optional - defaults to 0.05)
+   - `POSTGRES_URL` (optional - recommended for production, SQLite used by default)
 5. Deploy the app
 
-The GitHub Actions workflow will continue to run price checks automatically in your forked repository. Make sure to add the required secrets to your repository's settings as well (Settings → Secrets and variables → Actions).
+The GitHub Actions workflow will continue to run price checks automatically in your forked repository. Make sure to add at least the `FIRECRAWL_API_KEY` secret to your repository's settings (Settings → Secrets and variables → Actions).
 
 ## Development
 

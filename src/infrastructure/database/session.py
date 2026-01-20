@@ -46,7 +46,7 @@ def get_engine():
     }
     
     # Add connection timeout only for PostgreSQL (not supported by SQLite)
-    if db_url and db_url.startswith("postgresql://"):
+    if db_url and isinstance(db_url, str) and db_url.startswith("postgresql://"):
         engine_args["connect_args"] = {"connect_timeout": 30}
     
     return create_engine(db_url, **engine_args)
